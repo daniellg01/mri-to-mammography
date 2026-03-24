@@ -1,0 +1,57 @@
+from graphviz import Digraph
+
+def create_methodology_diagram():
+    dot = Digraph(comment='Mammography Pro Pipeline', format='png')
+    dot.attr(rankdir='TB', splines='ortho', nodesep='0.6', ranksep='0.6')
+    dot.attr(dpi='300')
+    dot.attr(fontname='Arial')
+    dot.attr('node', shape='note', style='filled', fillcolor='#E3F2FD', color='#1565C0', fontname='Arial')
+    with dot.subgraph(name='cluster_0') as c:
+        c.attr(label='FASE 1: ADQUISICIÓN & PREPROCESAMIENTO', fontsize='12', style='dashed', color='gray')
+        c.node('Duke', 'Duke Breast MRI\nDataset (TCIA)\n(N=6-10)', shape='cylinder', fillcolor='#FFEBEE', color='#C62828')
+        c.node('Dicom', 'Series DICOM\n(T1-w Fat-Sat / DCE)')
+        c.node('Converter', 'Módulo DICOM Converter\n(Normalización Espacial)', shape='box', fillcolor='#E0F2F1', color='#00695C')
+        c.node('Nifti', 'Volumen 3D Isótropo\n(.nii.gz)', shape='note')
+        c.edge('Duke', 'Dicom')
+        c.edge('Dicom', 'Converter')
+        c.edge('Converter', 'Nifti')
+    with dot.subgraph(name='cluster_1') as c:
+        c.attr(label='FASE 2: SEGMENTACIÓN SEMÁNTICA (IA)', fontsize='12', style='dashed', color='gray')
+        c.node('NNUnet', 'Modelo 1: nnU-Net\n(Estructuras Internas)', shape='component', fillcolor='#FFF3E0', color='#EF6C00')
+        c.node('SegNet', 'Modelo 2: BreastSegNet\n(Piel & Superficie)', shape='component', fillcolor='#FFF3E0', color='#EF6C00')
+        c.node('Fusion', 'Algoritmo de Fusión\nJerárquica', shape='box', fillcolor='#E0F2F1', color='#00695C')
+        c.node('Masks', 'Mapa de Etiquetas\n(9 Tejidos)', shape='note')
+        c.edge('NNUnet', 'Fusion')
+        c.edge('SegNet', 'Fusion')
+        c.edge('Fusion', 'Masks')
+    dot.edge('Nifti', 'NNUnet')
+    dot.edge('Nifti', 'SegNet')
+    with dot.subgraph(name='cluster_2') as c:
+        c.attr(label='FASE 3: GENERACIÓN DE MALLAS & BIOMECÁNICA', fontsize='12', style='dashed', color='gray')
+        c.node('Meshing', 'Marching Cubes +\nSuavizado Laplaciano', shape='box', fillcolor='#E0F2F1', color='#00695C')
+        c.node('STL', 'Mallas Anatómicas (STL)\n(High-Poly)', shape='note')
+        c.node('PhysicsEngine', 'Physics Engine (Compresión)\nFuerza: 180N | Elasticidad: 1.5x', shape='box', fillcolor='#F3E5F5', color='#6A1B9A')
+        c.node('Deformed', 'Geometría Deformada\n(Listo para Ray-Casting)', shape='note')
+        c.edge('Meshing', 'STL')
+        c.edge('STL', 'PhysicsEngine')
+        c.edge('PhysicsEngine', 'Deformed')
+    dot.edge('Masks', 'Meshing')
+    with dot.subgraph(name='cluster_3') as c:
+        c.attr(label='FASE 4: SIMULACIÓN DE RAYOS X (IN SILICO)', fontsize='12', style='dashed', color='gray')
+        c.node('Params', 'Parámetros Físicos:\n- Espectro: 28 keV Monoenergético\n- Atenuación: NIST XCOM\n- Ruido: Shot Noise (Poisson)', shape='note', style='filled', fillcolor='#FFFDE7', color='#FBC02D')
+        c.node('RayCasting', 'Algoritmo de Ray-Casting\n(Beer-Lambert Law)', shape='box', fillcolor='#F3E5F5', color='#6A1B9A')
+        c.node('RawImg', 'Imagen Raw 16-bit\n(Proyecciones CC / MLO)', shape='note')
+        c.edge('RayCasting', 'RawImg')
+        c.edge('Params', 'RayCasting', style='dotted', arrowhead='none')
+    dot.edge('Deformed', 'RayCasting')
+    with dot.subgraph(name='cluster_4') as c:
+        c.attr(label='FASE 5: VALIDACIÓN & OUTPUT', fontsize='12', style='dashed', color='gray')
+        c.node('QA', 'Módulo QA Analysis\n(Cálculo SNR / CNR / Uniformidad)', shape='box', fillcolor='#E8F5E9', color='#2E7D32')
+        c.node('Report', 'Reporte Clínico (CSV/PDF)\n+ Mamografía Sintética Final', shape='folder', fillcolor='#C8E6C9', color='#1B5E20')
+        c.edge('QA', 'Report')
+    dot.edge('RawImg', 'QA')
+    output_path = 'diagrama_metodologia_mammography_pro'
+    dot.render(output_path, view=True)
+    print(f'Diagrama generado exitosamente: {output_path}.png')
+if __name__ == '__main__':
+    create_methodology_diagram()

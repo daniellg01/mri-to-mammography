@@ -1,0 +1,28 @@
+# Core Data and Math
+numpy
+matplotlib
+scipy
+
+# 3D Mesh Engine (Removed [all] to avoid C++ build errors)
+trimesh
+rtree
+
+# Desktop GUI Framework (Industry Standard)
+PySide6
+
+# 3D Rendering for Desktop Apps
+pyvista
+pyvistaqt
+pyopengl
+vtk
+
+# Utilities
+pillow
+requests
+gdown
+dicom2nifti 
+pydicom 
+nibabel
+scikit-image
+nnunetv2
+opencv-python
